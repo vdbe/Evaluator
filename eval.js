@@ -41,10 +41,16 @@ Client.on('messageCreate', async(message) => {
 
             
           try{
-            let tmpfile = tmp.fileSync({postfix:".js"})
+            let tmpfile = tmp.fileSync({postfix:".js",mode:0777})
 
             await fs.writeFileSync(tmpfile.name, code)
             exec(`node ${tmpfile.name}`, options, async (error,stdout,stderr)=>{
+                  if(error){
+                    console.log(error)
+                  }
+                  if(stderr){
+                    console.log(stderr)
+                  }
                   let original = args.join(" ")
                   let out = `\`\`\`xl\n${stdout}\n\`\`\``
                  
@@ -74,7 +80,7 @@ Client.on('messageCreate', async(message) => {
               
             
             
-            let tmpfile = tmp.fileSync({postfix:".py"})
+            let tmpfile = tmp.fileSync({postfix:".py",mode:0777})
             await fs.writeFileSync(tmpfile.name, code)
               exec(`python3 ${tmpfile.name}`, options, async (error,stdout,stderr)=>{
                   let original = args.join(" ")
