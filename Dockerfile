@@ -30,11 +30,11 @@ WORKDIR /root/evaluator
 
 # Copy required files
 COPY ./package.json /root/evaluator/
-COPY ./src /root/evaluator/src
+COPY ./ /root/evaluator/
 
 RUN npm install
 
 # Copy config last
 COPY ./.env /root/evaluator/
 
-ENTRYPOINT ["node", "src/eval.js"]
+ENTRYPOINT ["node", "eval.js"]
