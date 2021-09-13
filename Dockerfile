@@ -6,4 +6,3 @@ RUN npm install
 COPY . /docker/evaluator
 RUN chmod -R 400 /docker
 CMD node eval.js
-EXPOSE 8081
