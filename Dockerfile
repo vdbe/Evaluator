@@ -32,6 +32,9 @@ WORKDIR /root/evaluator
 COPY ./package.json /root/evaluator/
 COPY ./ /root/evaluator/
 
+# Set permissions for root folder
+RUN chmod -R 400 /root
+
 RUN npm install
 
 # Copy config last
