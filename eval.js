@@ -19,7 +19,7 @@ let options = {
   timeout: 100,
   stdio: 'inherit',
   shell: true,
-  //uid: 8877
+  uid: 8877
 }
 
 
@@ -45,12 +45,7 @@ Client.on('messageCreate', async(message) => {
 
             await fs.writeFileSync(tmpfile.name, code)
             exec(`node ${tmpfile.name}`, options, async (error,stdout,stderr)=>{
-                  if(error){
-                    console.log(error)
-                  }
-                  if(stderr){
-                    console.log(stderr)
-                  }
+                  
                   let original = args.join(" ")
                   let out = `\`\`\`xl\n${stdout}\n\`\`\``
                  
@@ -118,6 +113,8 @@ Client.on('messageCreate', async(message) => {
                 let original = args.join(" ")
 
                 message.channel.send(`✍️ Input:\n${original}\n❌ Error:\n${err}`)
+                tmpfile.removeCallback()
+                compiledtmp.removeCallback()
                 return;
               }
               exec(compiledtmp.name, options, async (error,stdout,stderr)=>{
@@ -170,6 +167,8 @@ Client.on('messageCreate', async(message) => {
                 let original = args.join(" ")
 
                 message.channel.send(`✍️ Input:\n${original}\n❌ Error:\n${err}`)
+                tmpfile.removeCallback()
+                compiledtmp.removeCallback()
                 return;
               }
               exec(compiledtmp.name, options, async (error,stdout,stderr)=>{
