@@ -19,7 +19,7 @@ let options = {
   timeout: 100,
   stdio: 'inherit',
   shell: true,
-  uid: 8877
+  //uid: 8877
 }
 
 
@@ -107,17 +107,11 @@ Client.on('messageCreate', async(message) => {
           
             await fs.writeFileSync(tmpfile.name, input)
             exec(`gcc ${tmpfile.name} -o ${compiledtmp.name}`, (error, stdout, stderr) => {
-              if(error){
+              if(stderr){
                 let err = `\`\`\`xl\n${stderr}\n\`\`\``
                 let original = args.join(" ")
 
-                message.channel.send(`✍️ Input:\n${original}\n❌ Error:\n${err}`).catch(async () => {
-                  let tmpout = tmp.fileSync({postfix:".txt"})
-                  await fs.writeFileSync(tmpout.name, stderr)
-                  message.channel.send(`✍️ Input:\n${original}\n❌ Error:\n`)
-                  await message.channel.send({files: [{attachment:tmpout.name}]})
-                  tmpout.removeCallback()
-                })
+                message.channel.send(`✍️ Input:\n${original}\n❌ Error:\n${err}`)
                 return;
               }
               exec(compiledtmp.name, options, async (error,stdout,stderr)=>{
@@ -165,17 +159,11 @@ Client.on('messageCreate', async(message) => {
             let compiledtmp = tmp.fileSync({mode:0777, discardDescriptor: true})
             await fs.writeFileSync(tmpfile.name, input)
             exec(`g++ ${tmpfile.name} -o ${compiledtmp.name}`, (error, stdout, stderr) => {
-              if(error){
+              if(stderr){
                 let err = `\`\`\`xl\n${stderr}\n\`\`\``
                 let original = args.join(" ")
 
-                message.channel.send(`✍️ Input:\n${original}\n❌ Error:\n${err}`).catch(async () => {
-                  let tmpout = tmp.fileSync({postfix:".txt"})
-                  await fs.writeFileSync(tmpout.name, stderr)
-                  message.channel.send(`✍️ Input:\n${original}\n❌ Error:\n`)
-                  message.channel.send({files: [{attachment:tmpout.name}]})
-                  tmpout.removeCallback()
-                })
+                message.channel.send(`✍️ Input:\n${original}\n❌ Error:\n${err}`)
                 return;
               }
               exec(compiledtmp.name, options, async (error,stdout,stderr)=>{
