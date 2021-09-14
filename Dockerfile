@@ -8,7 +8,8 @@ RUN apk update && \
     apk add --no-cache \
     gcc \
     g++ \
-    python3
+    python3 \
+    rust
 
 
 # Setup userENV USER=docker
