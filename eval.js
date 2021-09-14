@@ -19,7 +19,8 @@ let options = {
   timeout: 100,
   stdio: 'inherit',
   shell: true,
-  uid: 8877
+  uid: 8877,
+  gid: 8877
 }
 
 
@@ -86,7 +87,7 @@ Client.on('messageCreate', async(message) => {
 
                       await fs.writeFileSync(tmpout.name, stdout)
                       message.channel.send(`✍️ Input:\n${original}\n📝 Output:\n`)
-                      message.channel.send({files: [{attachment:tmpout.name}]})
+                      await message.channel.send({files: [{attachment:tmpout.name}]})
                       tmpout.removeCallback()
                     })
                     tmpfile.removeCallback()
