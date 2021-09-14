@@ -29,6 +29,7 @@ let options = {
 Client.on('messageCreate', async(message) => {
     const args = message.content.split(" ").slice(1);
     const command = message.content.split(" ")[0]
+    console.log(args)
     if(args[0][0] == "\n"){
         args[0] = args[0].slice(1)
       }
@@ -394,4 +395,4 @@ Client.on('messageCreate', async(message) => {
 
 
 
-Client.login(process.env.TOKEN);
+Client.login(process.env.TESTER);
