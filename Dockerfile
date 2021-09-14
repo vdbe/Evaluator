@@ -12,7 +12,7 @@ RUN apk update && \
 
 
 # Setup userENV USER=docker
-ENV UID=8777
+ENV UID=8877
 ENV GID=8877
 ENV USER=runner
 
