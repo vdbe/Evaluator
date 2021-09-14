@@ -27,9 +27,12 @@ let options = {
 
 
 Client.on('messageCreate', async(message) => {
+  if(message.author.bot) return;
+  if(!message.content.startsWith(process.env.PREFIX)) return;
     const args = message.content.split(" ").slice(1);
+    if(args.length < 1) return;
+    
     const command = message.content.split(" ")[0]
-    console.log(args)
     if(args[0][0] == "\n"){
         args[0] = args[0].slice(1)
       }
@@ -395,4 +398,4 @@ Client.on('messageCreate', async(message) => {
 
 
 
-Client.login(process.env.TESTER);
+Client.login(process.env.TOKEN);
