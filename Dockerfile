@@ -20,10 +20,12 @@ ENV USER=runner
 # Add user
 RUN addgroup --gid $GID -S $USER
 RUN adduser \
+    -s /bin/nologin \
     --disabled-password \
     --gecos "" \
     --ingroup "$USER" \
     --uid "$UID" \
+    -H \
     "$USER"
 
 RUN mkdir -p /root/evaluator
