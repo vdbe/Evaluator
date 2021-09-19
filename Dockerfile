@@ -28,6 +28,7 @@ RUN adduser \
     -H \
     "$USER"
 
+
 RUN mkdir -p /root/evaluator
 WORKDIR /root/evaluator
 

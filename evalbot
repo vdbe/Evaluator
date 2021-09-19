@@ -1,0 +1,4 @@
+#!/bin/bash
+docker build -t eval /home/dries/evaluator && docker run -d --cap-add=NET_ADMIN --name=evalbot eval \
+&& docker exec evalbot iptables -A OUTPUT -m owner --uid-owner 8877 -j DROP
+
