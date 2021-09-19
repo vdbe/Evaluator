@@ -9,7 +9,9 @@ RUN apk update && \
     gcc \
     g++ \
     python3 \
-    rust
+    rust \
+    iptables \
+    ip6tables
 
 
 # Setup userENV USER=docker
