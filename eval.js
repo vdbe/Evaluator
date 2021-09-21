@@ -1,14 +1,24 @@
-
 const Discord = require("discord.js");
-const Client = new Discord.Client({ intents: ["GUILDS", "GUILD_MESSAGES"] });
-const { MessageEmbed } = require('discord.js');
-const { PythonShell } = require('python-shell')
-const { exec } = require("child_process")
+const Client = new Discord.Client({
+  intents: ["GUILDS", "GUILD_MESSAGES"]
+});
+const {
+  MessageEmbed
+} = require('discord.js');
+const {
+  exec
+} = require("child_process")
 const fs = require('fs')
 const dotenv = require('dotenv')
 const tmp = require('tmp');
-const { ADDRGETNETWORKPARAMS } = require("dns");
+const {
+  brotliDecompressSync
+} = require("zlib");
 dotenv.config()
+
+
+const langregex = /`{3}.*\n/
+
 Client.on('ready', () => {
   console.log('\x1b[32m%s\x1b[0m', 'Evaluator bot ready!');
 })
@@ -27,80 +37,103 @@ let options = {
   gid: 8877
 }
 
+let langs = {
+  javascript: {
+    type: "interpreter",
+    command: "node",
+    postfix: ".js",
+    name: "Javascript",
+    template: "{CODE}"
+  },
+  python: {
+    type: "interpreter",
+    command: "python3",
+    postfix: ".py",
+    name: "Python",
+    template: "{CODE}"
+
+  },
+  c: {
+    type: "compiler",
+    command: "gcc",
+    postfix: ".c",
+    name: "C",
+    template: "#include <stdio.h>\nint main(){\n{CODE}\nreturn 0;\n}"
+  },
+  cpp: {
+    type: "compiler",
+    command: "g++",
+    postfix: ".cpp",
+    name: "Cpp",
+    template: "#include <iostream>\nint main(){\n{CODE}\nreturn 0;\n}"
+  },
+  rust: {
+    type: "compiler",
+    command: "rustc",
+    postfix: ".rs",
+    name: "Rust",
+    template: "fn main(){\n{CODE}}"
+  }
+}
+let shortenedlangs = {
+  js: langs.javascript,
+  py: langs.python,
+  "c++": langs.cpp,
+  rs: langs.rust
+}
+
 
 Client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
   if (!message.content.startsWith(process.env.PREFIX)) return;
   const args = message.content.split(" ").slice(1);
   const command = message.content.split(" ")[0]
-  if(commands.help.includes(command)){
+  if (commands.help.includes(command)) {
     sendHelp(message)
-  }
-  else{
+  } else {
     if (args.length < 1) return;
 
     if (args[0][0] == "\n") {
       args[0] = args[0].slice(1)
     }
     let language = args[0].split("\n")[0].replace('\`\`\`', '')
+    if (commands.execute.includes(command) || commands.executefull.includes(command)) {
 
+      let langobject = langs[language] || shortenedlangs[language]
+      let code = args.join(" ").replace(langregex, '').replace(/`{3}/, '')
+      let tmpfile = tmp.fileSync({
+        postfix: langobject.postfix,
+        mode: 0777
+      })
+      let input;
+      if (commands.execute.includes(command)) input = langobject.template.replace("{CODE}", code);
+      else input = code
+      await fs.writeFileSync(tmpfile.name, input)
 
-    if (commands.execute.includes(command)) {
-
-      let code;
-      switch (language) {
-        case "js":
-          code = args.join(" ").replace('\`\`\`js', '').replace('\`\`\`', '')
-        case "javascript":
-          if (!code) code = args.join(" ").replace('\`\`\`javascript', '').replace('\`\`\`', '')
+      switch (langobject.type) {
+        case "interpreter":
 
           try {
-            let tmpfile = tmp.fileSync({ postfix: ".js", mode: 0777 })
-
-            await fs.writeFileSync(tmpfile.name, code)
-            exec(`node ${tmpfile.name}`, options, async (error, stdout, stderr) => {
+            exec(`${langobject.command} ${tmpfile.name}`, options, async (error, stdout, stderr) => {
               let original = args.join(" ")
-              sendResult(message, true, 'Javascript', original, stdout)
+              sendResult(message, true, langobject.name, original, stdout)
               tmpfile.removeCallback();
             });
-          }
-          catch (err) {
+          } catch (err) {
             console.log(`${err}`)
           }
           break;
-        case "py":
-          code = args.join(" ").replace('\`\`\`py', '').replace('\`\`\`', '')
-        case "python":
+        case "compiler":
           try {
-            if (!code) code = args.join(" ").replace('\`\`\`python', '').replace('\`\`\`', '')
 
-            let tmpfile = tmp.fileSync({ postfix: ".py", mode: 0777 })
-            await fs.writeFileSync(tmpfile.name, code)
-            exec(`python3 ${tmpfile.name}`, options, async (error, stdout, stderr) => {
-              let original = args.join(" ")
-              sendResult(message, true, 'Python', original, stdout);
-              tmpfile.removeCallback()
-            });
-
-          }
-          catch (err) {
-            console.log(`${err}`)
-          }
-          break;
-        case "c":
-          try {
-            code = args.join(" ").replace('\`\`\`c', '').replace('\`\`\`', '')
-
-            let input;
-            input = `#include <stdio.h>\nint main(){\n${code}\nreturn 0;\n}`
-            let tmpfile = tmp.fileSync({ postfix: ".c" })
-            let compiledtmp = tmp.fileSync({ mode: 0777, discardDescriptor: true })
-
-            await fs.writeFileSync(tmpfile.name, input)
-            exec(`gcc ${tmpfile.name} -o ${compiledtmp.name}`, (error, stdout, stderr) => {
+            let compiledtmp = tmp.fileSync({
+              mode: 0777,
+              discardDescriptor: true
+            })
+            exec(`${langobject.command} ${tmpfile.name} -o ${compiledtmp.name}`, (error, stdout, stderr) => {
               if (stderr) {
                 let original = args.join(" ")
-                sendResult(message, false, 'C', original, stderr)
+                sendResult(message, false, langobject.name, original, stderr)
                 tmpfile.removeCallback()
                 compiledtmp.removeCallback()
                 return;
@@ -110,76 +143,12 @@ Client.on('messageCreate', async (message) => {
                   console.log(error)
                 }
                 let original = args.join(" ")
-                sendResult(message, true, 'C', original, stdout)
+                sendResult(message, true, langobject.name, original, stdout)
                 tmpfile.removeCallback()
                 compiledtmp.removeCallback()
               });
             });
-          }
-          catch (err) {
-            console.log(`${err}`)
-          }
-          break;
-        case "cpp":
-          code = args.join(" ").replace('\`\`\`cpp', '').replace('\`\`\`', '')
-        case "c++":
-          if (!code) code = args.join(" ").replace('\`\`\`c++', '').replace('\`\`\`', '')
-          try {
-            let input;
-            input = `#include <iostream>\nint main(){\n${code}\nreturn 0;\n}`
-            let tmpfile = tmp.fileSync({ postfix: ".cpp" })
-            let compiledtmp = tmp.fileSync({ mode: 0777, discardDescriptor: true })
-            await fs.writeFileSync(tmpfile.name, input)
-            exec(`g++ ${tmpfile.name} -o ${compiledtmp.name}`, (error, stdout, stderr) => {
-              if (stderr) {
-                let err = `\`\`\`\n${stderr}\n\`\`\``
-                let original = args.join(" ")
-                sendResult(message, false, 'C++', original, stderr)
-                tmpfile.removeCallback()
-                compiledtmp.removeCallback()
-                return;
-              }
-              exec(compiledtmp.name, options, async (error, stdout, stderr) => {
-                let original = args.join(" ")
-                sendResult(message, true, 'C++', original, stdout)
-                tmpfile.removeCallback()
-                compiledtmp.removeCallback()
-              });
-            });
-          }
-          catch (err) {
-            console.log(`${err}`)
-          }
-          break;
-        case "rs":
-          code = args.join(" ").replace('\`\`\`rs', '').replace('\`\`\`', '')
-        case "rust":
-          if (!code) code = args.join(" ").replace('\`\`\`rust', '').replace('\`\`\`', '')
-
-          try {
-            let input;
-
-            input = `fn main(){\n${code}}`
-            let tmpfile = tmp.fileSync({ postfix: ".rs" })
-            let compiledtmp = tmp.fileSync({ mode: 0777, discardDescriptor: true })
-            await fs.writeFileSync(tmpfile.name, input)
-            exec(`rustc ${tmpfile.name} -o ${compiledtmp.name}`, (error, stdout, stderr) => {
-              if (stderr) {
-                let original = args.join(" ")
-                sendResult(message, false, 'Rust', original, stderr)
-                tmpfile.removeCallback()
-                compiledtmp.removeCallback()
-                return;
-              }
-              exec(compiledtmp.name, options, async (error, stdout, stderr) => {
-                let original = args.join(" ")
-                sendResult(message, true, 'Rust', original, stdout)
-                tmpfile.removeCallback()
-                compiledtmp.removeCallback()
-              });
-            });
-          }
-          catch (err) {
+          } catch (err) {
             console.log(`${err}`)
           }
           break;
@@ -188,151 +157,8 @@ Client.on('messageCreate', async (message) => {
           break;
       }
     }
-    else if (commands.executefull.includes(command)) {
-      let code;
-      switch (language) {
-        case "c":
-
-          try {
-            code = args.join(" ").replace('\`\`\`c', '').replace('\`\`\`', '')
-
-            let tmpfile = tmp.fileSync({ postfix: ".c" })
-            let compiledtmp = tmp.fileSync({ mode: 0777, discardDescriptor: true })
-
-            await fs.writeFileSync(tmpfile.name, code)
-            exec(`gcc ${tmpfile.name} -o ${compiledtmp.name}`, (error, stdout, stderr) => {
-              if (stderr) {
-                let err = `\`\`\`\n${stderr}\n\`\`\``
-                let original = args.join(" ")
-
-                message.channel.send(`✍️ Input:\n${original}\n❌ Error:\n${err}`)
-                tmpfile.removeCallback()
-                compiledtmp.removeCallback()
-                return;
-              }
-              exec(compiledtmp.name, options, async (error, stdout, stderr) => {
-                if (error) {
-                  console.log(error)
-                }
-                let original = args.join(" ")
-                let out = `\`\`\`\n${stdout || "Execution ended with no output!"}\n\`\`\``
-
-                message.channel.send(`✍️ Input:\n${original}\n📝 Output:\n${out}`).catch(async () => {
-                  let tmpout = tmp.fileSync({ postfix: ".txt" })
-                  await fs.writeFileSync(tmpout.name, stdout)
-                  message.channel.send(`✍️ Input:\n${original}\n📝 Output:\n`)
-                  await message.channel.send({ files: [{ attachment: tmpout.name }] })
-                  tmpout.removeCallback()
-                })
-                tmpfile.removeCallback()
-                compiledtmp.removeCallback()
-              });
-
-
-            });
-
-
-
-
-
-          }
-          catch (err) {
-            console.log(`${err}`)
-          }
-          break;
-        case "cpp":
-          code = args.join(" ").replace('\`\`\`cpp', '').replace('\`\`\`', '')
-        case "c++":
-          if (!code) code = args.join(" ").replace('\`\`\`c++', '').replace('\`\`\`', '')
-
-          try {
-
-
-            let tmpfile = tmp.fileSync({ postfix: ".cpp" })
-            let compiledtmp = tmp.fileSync({ mode: 0777, discardDescriptor: true })
-            await fs.writeFileSync(tmpfile.name, code)
-            exec(`g++ ${tmpfile.name} -o ${compiledtmp.name}`, (error, stdout, stderr) => {
-              if (stderr) {
-                let err = `\`\`\`\n${stderr}\n\`\`\``
-                let original = args.join(" ")
-
-                message.channel.send(`✍️ Input:\n${original}\n❌ Error:\n${err}`)
-                tmpfile.removeCallback()
-                compiledtmp.removeCallback()
-                return;
-              }
-              exec(compiledtmp.name, options, async (error, stdout, stderr) => {
-                let original = args.join(" ")
-                let out = `\`\`\`\n${stdout || "Execution ended with no output!"}\`\`\``
-                message.channel.send(`✍️ Input:\n${original}\n📝 Output:\n${out}`).catch(async () => {
-                  let tmpout = tmp.fileSync({ postfix: ".txt" })
-                  await fs.writeFileSync(tmpout.name, stdout)
-                  message.channel.send(`✍️ Input:\n${original}\n📝 Output:\n`)
-                  message.channel.send({ files: [{ attachment: tmpout.name }] })
-                  tmpout.removeCallback()
-                })
-                tmpfile.removeCallback()
-                compiledtmp.removeCallback()
-              });
-
-            });
-
-          }
-          catch (err) {
-            console.log(`${err}`)
-          }
-          break;
-        case "rs":
-          code = args.join(" ").replace('\`\`\`rs', '').replace('\`\`\`', '')
-        case "rust":
-          if (!code) code = args.join(" ").replace('\`\`\`rust', '').replace('\`\`\`', '')
-
-          try {
-
-
-            let tmpfile = tmp.fileSync({ postfix: ".rs" })
-            let compiledtmp = tmp.fileSync({ mode: 0777, discardDescriptor: true })
-            await fs.writeFileSync(tmpfile.name, code)
-            exec(`rustc ${tmpfile.name} -o ${compiledtmp.name}`, (error, stdout, stderr) => {
-              if (stderr) {
-                let err = `\`\`\`\n${stderr}\n\`\`\``
-                let original = args.join(" ")
-
-                message.channel.send(`✍️ Input:\n${original}\n❌ Error:\n${err}`)
-                tmpfile.removeCallback()
-                compiledtmp.removeCallback()
-                return;
-              }
-              exec(compiledtmp.name, options, async (error, stdout, stderr) => {
-                let original = args.join(" ")
-                let out = `\`\`\`\n${stdout || "Execution ended with no output!"}\`\`\``
-                message.channel.send(`✍️ Input:\n${original}\n📝 Output:\n${out}`).catch(async () => {
-                  let tmpout = tmp.fileSync({ postfix: ".txt" })
-                  await fs.writeFileSync(tmpout.name, stdout)
-                  message.channel.send(`✍️ Input:\n${original}\n📝 Output:\n`)
-                  message.channel.send({ files: [{ attachment: tmpout.name }] })
-                  tmpout.removeCallback()
-                })
-                tmpfile.removeCallback()
-                compiledtmp.removeCallback()
-              });
-
-            });
-
-          }
-          catch (err) {
-            console.log(`${err}`)
-          }
-          break;
-        default:
-          message.channel.send("This language is not supported or you did not provide a language!")
-          break;
-      }
-    }
   }
-  
 })
-
 async function sendResult(msg, isSucces, lang, input, output) {
   const inputDescription = `**✍️ Input code in ${lang}:**\n${input}\n`
   let description = inputDescription +
@@ -346,41 +172,51 @@ ${output || 'No output from execution'}
     .setDescription(description)
     .setColor(isSucces ? '#3BA55D' : '#ED4245')
 
-  msg.channel.send({ embeds: [embed] }).catch(async () => {
-    let tmpOut = tmp.fileSync({ postfix: ".txt" })
+  msg.channel.send({
+    embeds: [embed]
+  }).catch(async () => {
+    let tmpOut = tmp.fileSync({
+      postfix: ".txt"
+    })
     await fs.writeFileSync(tmpOut.name, output)
-    msg.channel.send({ embeds: [embed.setDescription(inputDescription + `📝 Output file:\n`)] })
-      .then(() => msg.channel.send({ files: [{ attachment: tmpOut.name }] }))
+    msg.channel.send({
+        embeds: [embed.setDescription(inputDescription + `📝 Output file:\n`)]
+      })
+      .then(() => msg.channel.send({
+        files: [{
+          attachment: tmpOut.name
+        }]
+      }))
       .catch((err) => console.error('Message or attachment failed sending: ' + err))
       .finally(() => tmpOut.removeCallback())
   })
 }
-
 async function sendUnsupported(msg) {
   const embed = new MessageEmbed()
     .setTitle('Language not supported or missing')
-    .setDescription('Use a codeblock with language of your choosing and code within, example:\n' + 
+    .setDescription('Use a codeblock with language of your choosing and code within, example:\n' +
       '\\\`\\\`\\\`cpp\nstd::cout << "hello world!";\n\\\`\\\`\\\`\n' +
       '\`\`\`cpp\nstd::cout << "hello world!";\`\`\`')
     .addField('Supported languages', 'Javascript, Python, c, c++ and rust.\n' +
       'js, py, c, c++/cpp and rs.')
     .setColor('#FAA61A')
-  msg.channel.send({ embeds: [embed] });
+  msg.channel.send({
+    embeds: [embed]
+  });
 }
-
-async function sendHelp(msg){
+async function sendHelp(msg) {
   const embed = new MessageEmbed()
     .setTitle("How do I use the bot?")
-    .setDescription('Use a codeblock with language of your choosing and code within, example:\n' + 
+    .setDescription('Use a codeblock with language of your choosing and code within, example:\n' +
       '\\\`\\\`\\\`cpp\nstd::cout << "hello world!";\n\\\`\\\`\\\`\n' +
       '\`\`\`cpp\nstd::cout << "hello world!";\`\`\`')
-      .addField('Supported languages', 'Javascript, Python, c, c++ and rust.\n' +
+    .addField('Supported languages', 'Javascript, Python, c, c++ and rust.\n' +
       'js, py, c, c++/cpp and rs.')
-      .addField("Warning!", "Abuse of the system and intentionally breaking it will result in a blacklist")
-      .setFooter("Collaborators: Dodo#1948 | Toast#1042")
-      .setColor('#FAA61A')
-    msg.channel.send({ embeds: [embed] });
-
+    .addField("Warning!", "Abuse of the system and intentionally breaking it will result in a blacklist")
+    .setFooter("Collaborators: Dodo#1948 | Toast#1042")
+    .setColor('#FAA61A')
+  msg.channel.send({
+    embeds: [embed]
+  });
 }
-
 Client.login(process.env.TOKEN);
