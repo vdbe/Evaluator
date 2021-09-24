@@ -8,6 +8,7 @@ RUN apk update && \
     apk add --no-cache \
     gcc \
     g++ \
+    php \
     python3 \
     rust \
     iptables \
