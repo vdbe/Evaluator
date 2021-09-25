@@ -1,4 +1,12 @@
-#!/bin/bash
-docker build -t eval /home/dries/evaluator && docker run -d --cap-add=NET_ADMIN --name=evalbot eval \
-&& docker exec evalbot iptables -A OUTPUT -m owner --uid-owner 8877 -j DROP
+#!/usr/bin/env sh
+SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+
+# Set defaults if not set already
+[ -z "$TAGNAME" ]	&& TAGNAME="eval"
+[ -z "$DOCKERNAME" ]	&& DOCKERNAME="evalbot"
+[ -z "$UIDOWNER" ]	&& UIDOWNER="8877"
+
+docker build -t ${TAGNAME} ${SCRIPTPATH} \
+	&& docker run -d --cap-add=NET_ADMIN --name=${DOCKERNAME} ${TAGNAME} \
+	&& docker exec ${DOCKERNAME} iptables -A OUTPUT -m owner --uid-owner ${UIDOWNER} -j DROP
 
