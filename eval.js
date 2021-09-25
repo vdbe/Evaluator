@@ -58,7 +58,7 @@ let langs = {
     command: "php",
     postfix: ".php",
     name: "PHP",
-    template: "{CODE}"
+    template: "<?php\n{CODE}\n?>"
   },
   c: {
     type: "compiler",
