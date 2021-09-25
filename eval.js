@@ -53,6 +53,13 @@ let langs = {
     template: "{CODE}"
 
   },
+  php: {
+    type: "interpreter",
+    command: "php",
+    postfix: ".php",
+    name: "PHP",
+    template: "<?php\n{CODE}\n?>"
+  },
   c: {
     type: "compiler",
     command: "gcc",
@@ -210,8 +217,8 @@ async function sendHelp(msg) {
     .setDescription('Use a codeblock with language of your choosing and code within, example:\n' +
       '\\\`\\\`\\\`cpp\nstd::cout << "hello world!";\n\\\`\\\`\\\`\n' +
       '\`\`\`cpp\nstd::cout << "hello world!";\`\`\`')
-    .addField('Supported languages', 'Javascript, Python, c, c++ and rust.\n' +
-      'js, py, c, c++/cpp and rs.')
+    .addField('Supported languages', 'Javascript, Python, PHP, c, c++ and rust.\n' +
+      'js, py, php, c, c++/cpp and rs.')
     .addField("Warning!", "Abuse of the system and intentionally breaking it will result in a blacklist")
     .setFooter("Collaborators: Dodo#1948 | Toast#1042")
     .setColor('#FAA61A')
