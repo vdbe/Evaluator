@@ -178,7 +178,7 @@ Client.on('messageCreate', async (message) => {
 
 async function sendResult(msg, isSucces, lang, input, output, image = undefined) {
   const inputDescription = `**✍️ Input code in ${lang}:**\n${input}\n`
-  let description = inputDescription +
+  let description = // inputDescription + // less spam.
     `${isSucces ? '**📝 Output:**' : '**❌ Error**'}
 \`\`\`
 ${output || 'No output from execution'}
