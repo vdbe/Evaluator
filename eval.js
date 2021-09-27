@@ -14,6 +14,9 @@ const tmp = require('tmp');
 const {
   brotliDecompressSync
 } = require("zlib");
+
+const puppeteer = require('puppeteer');
+
 dotenv.config()
 
 
@@ -82,6 +85,7 @@ let langs = {
     template: "fn main(){\n{CODE}}"
   }
 }
+
 let shortenedlangs = {
   js: langs.javascript,
   py: langs.python,
@@ -89,12 +93,36 @@ let shortenedlangs = {
   rs: langs.rust
 }
 
-
 Client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
+  if (message.content == 'test') {
+    (async () => {
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--use-gl=egl', '--no-sandbox'],
+      });
+      
+      const page = await browser.newPage();
+
+      await page.setViewport({
+        width: 1280,
+        height: 720,
+        deviceScaleFactor: 1,
+      });
+
+      await page.goto('https://google.be');
+
+      let image = await page.screenshot();
+      
+      message.channel.send({content: 'blep', files: [image]});
+      await browser.close();
+    })();
+  }
   if (!message.content.startsWith(process.env.PREFIX)) return;
   const args = message.content.split(" ").slice(1);
   const command = message.content.split(" ")[0]
+
+
   if (commands.help.includes(command)) {
     sendHelp(message)
   } else {
@@ -119,7 +147,6 @@ Client.on('messageCreate', async (message) => {
 
       switch (langobject.type) {
         case "interpreter":
-
           try {
             exec(`${langobject.command} ${tmpfile.name}`, options, async (error, stdout, stderr) => {
               let original = args.join(" ")
@@ -166,6 +193,7 @@ Client.on('messageCreate', async (message) => {
     }
   }
 })
+
 async function sendResult(msg, isSucces, lang, input, output) {
   const inputDescription = `**✍️ Input code in ${lang}:**\n${input}\n`
   let description = inputDescription +
@@ -198,6 +226,7 @@ ${output || 'No output from execution'}
       .finally(() => tmpOut.removeCallback())
   })
 }
+
 async function sendUnsupported(msg) {
   const embed = new MessageEmbed()
     .setTitle('Language not supported or missing')
@@ -211,6 +240,7 @@ async function sendUnsupported(msg) {
     embeds: [embed]
   });
 }
+
 async function sendHelp(msg) {
   const embed = new MessageEmbed()
     .setTitle("How do I use the bot?")
@@ -226,4 +256,5 @@ async function sendHelp(msg) {
     embeds: [embed]
   });
 }
+
 Client.login(process.env.TOKEN);
