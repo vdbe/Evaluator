@@ -282,8 +282,6 @@ async function sendScreenshotHTML(message, content) {
   });
   await page.setContent(content);
   let image = await page.screenshot();
-  const embed = new MessageEmbed()
-    .setTitle("Resulting page")
   message.channel.send({files: [image]})
   await browser.close();
 };
