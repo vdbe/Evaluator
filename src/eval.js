@@ -11,12 +11,6 @@ const {
 const fs = require('fs')
 const dotenv = require('dotenv')
 const tmp = require('tmp');
-const {
-  brotliDecompressSync
-} = require("zlib");
-
-const puppeteer = require('puppeteer');
-
 dotenv.config()
 
 
@@ -30,6 +24,7 @@ const commands = {
   "execute": [`${process.env.PREFIX}execute`, `${process.env.PREFIX}eval`, `${process.env.PREFIX}e`],
   "executefull": [`${process.env.PREFIX}executefull`, `${process.env.PREFIX}efull`, `${process.env.PREFIX}ef`],
   "help": [`${process.env.PREFIX}help`, `${process.env.PREFIX}h`],
+  "brainfuck": [`${process.env.PREFIX}brainfuck`, `${process.env.PREFIX}bf`]
 }
 
 let options = {
@@ -54,17 +49,14 @@ let langs = {
     postfix: ".py",
     name: "Python",
     template: "{CODE}"
+
   },
   php: {
     type: "interpreter",
     command: "php",
     postfix: ".php",
     name: "PHP",
-    template: "<?php\n{CODE}\n?>",
-    callback(command, message, output) {
-      if (commands.executefull.includes(command))
-        sendScreenshotHTML(message, output);
-    }
+    template: "<?php\n{CODE}\n?>"
   },
   c: {
     type: "compiler",
@@ -88,7 +80,6 @@ let langs = {
     template: "fn main(){\n{CODE}}"
   }
 }
-
 let shortenedlangs = {
   js: langs.javascript,
   py: langs.python,
@@ -96,13 +87,12 @@ let shortenedlangs = {
   rs: langs.rust
 }
 
+
 Client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
   if (!message.content.startsWith(process.env.PREFIX)) return;
   const args = message.content.split(" ").slice(1);
   const command = message.content.split(" ")[0]
-
-
   if (commands.help.includes(command)) {
     sendHelp(message)
   } else {
@@ -111,7 +101,7 @@ Client.on('messageCreate', async (message) => {
     if (args[0][0] == "\n") {
       args[0] = args[0].slice(1)
     }
-    let language = args[0].split("\n")[0].replace('\`\`\`', '') // This causes a \n to not work right after command.
+    let language = args[0].split("\n")[0].replace('\`\`\`', '')
     let code = args.join(" ").replace(langregex, '').replace(/`{3}/, '')
     let langobject = langs[language] || shortenedlangs[language]
 
@@ -128,12 +118,11 @@ Client.on('messageCreate', async (message) => {
 
       switch (langobject.type) {
         case "interpreter":
+
           try {
             exec(`${langobject.command} ${tmpfile.name}`, options, async (error, stdout, stderr) => {
               let original = args.join(" ")
               sendResult(message, true, langobject.name, original, stdout)
-              if (langobject.callback)
-                langobject.callback(command, message, stdout)
               tmpfile.removeCallback();
             });
           } catch (err) {
@@ -177,10 +166,9 @@ Client.on('messageCreate', async (message) => {
 
   }
 })
-
-async function sendResult(msg, isSucces, lang, input, output, image = undefined) {
+async function sendResult(msg, isSucces, lang, input, output) {
   const inputDescription = `**✍️ Input code in ${lang}:**\n${input}\n`
-  let description = // inputDescription + // less spam.
+  let description = inputDescription +
     `${isSucces ? '**📝 Output:**' : '**❌ Error**'}
 \`\`\`
 ${output || 'No output from execution'}
@@ -203,14 +191,13 @@ ${output || 'No output from execution'}
       })
       .then(() => msg.channel.send({
         files: [{
-          attachment: tmpOut.name,
+          attachment: tmpOut.name
         }]
       }))
       .catch((err) => console.error('Message or attachment failed sending: ' + err))
       .finally(() => tmpOut.removeCallback())
   })
 }
-
 async function sendUnsupported(msg) {
   const embed = new MessageEmbed()
     .setTitle('Language not supported or missing')
@@ -225,12 +212,13 @@ async function sendUnsupported(msg) {
   });
 }
 
+
 async function sendHelp(msg) {
   const embed = new MessageEmbed()
     .setTitle("How do I use the bot?")
     .setDescription('Use a codeblock with language of your choosing and code within, example:\n' +
       '\\\`\\\`\\\`cpp\nstd::cout << "hello world!";\n\\\`\\\`\\\`\n' +
-      '\`\`\`cpp\nstd::cout << "hello world!";\`\`\`')
+      '\`\`\`cpp\nstd::cout << "hello world!";\`\`\`\n\n Use the `brainfuck` command to evaluate brainfuck')
     .addField('Supported languages', 'Javascript, Python, PHP, c, c++ and rust.\n' +
       'js, py, php, c, c++/cpp and rs.')
     .addField("Warning!", "Abuse of the system and intentionally breaking it will result in a blacklist")
@@ -240,22 +228,4 @@ async function sendHelp(msg) {
     embeds: [embed]
   });
 }
-
-async function sendScreenshotHTML(message, content) {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--use-gl=egl', '--no-sandbox'],
-  });
-  const page = await browser.newPage();
-  await page.setViewport({
-    width: 1280,
-    height: 720,
-    deviceScaleFactor: 2,
-  });
-  await page.setContent(content);
-  let image = await page.screenshot();  
-  message.channel.send({files: [image]})
-  await browser.close();
-};
-
-Client.login(process.env.TOKEN);
+Client.login(process.env.TESTER);

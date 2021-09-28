@@ -15,8 +15,18 @@ RUN apk update && \
     python3 \
     rust \
     iptables \
-    ip6tables 
+    ip6tables \
+# For puppeteer: https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md#running-on-alpine
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
 
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+# /
 
 # Setup userENV USER=docker
 ENV UID=8877
