@@ -60,4 +60,4 @@ RUN npm install
 # Copy config last
 COPY ./.env /root/evaluator/
 
-ENTRYPOINT ["node", "eval.js"]
+ENTRYPOINT ["node", "./src/eval.js"]

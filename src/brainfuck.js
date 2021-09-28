@@ -25,14 +25,14 @@ module.exports = class BrainFuck {
                     break;
                 case "+":
                     if (this.data[this.pointer] == 127) {
-                        throw new Error("ASCII out of range high");
+                        throw new Error("ASCII value too high");
                     } else {
                         this.data[this.pointer] += 1;
                     }
                     break;
                 case "-":
                     if (this.data[this.pointer] == 0) {
-                        throw new Error("ASCII out of range low");
+                        throw new Error("ASCII value too low");
                     } else {
                         this.data[this.pointer] -= 1;
                     }
