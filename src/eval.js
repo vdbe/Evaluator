@@ -115,15 +115,17 @@ Client.on('messageCreate', async (message) => {
       if (commands.execute.includes(command)) input = langobject.template.replace("{CODE}", code);
       else input = code
       await fs.writeFileSync(tmpfile.name, input)
+    
 
       switch (langobject.type) {
         case "interpreter":
           try {
             exec(`${langobject.command} ${tmpfile.name}`, options, async (error, stdout, stderr) => {
               let original = args.join(" ")
-              sendResult(message, true, langobject.name, original, stdout)
               if (langobject.callback)
-                langobject.callback(command, message, stdout)
+                return langobject.callback(command, message, stdout)
+              sendResult(message, true, langobject.name, original, stdout)
+              
               tmpfile.removeCallback();
             });
           } catch (err) {
@@ -168,10 +170,10 @@ Client.on('messageCreate', async (message) => {
       let bf = new Brainfuck()
       try{
         let result = bf.evaluate(code)
-        sendResult(msg, true, "Brainfuck", args.join(" "), result)
+        sendResult(message, true, "Brainfuck", args.join(" "), result)
       }
       catch(error){
-        sendBrainFuckError(msg,error)
+        sendBrainFuckError(message,error)
       }
     }
 
@@ -260,7 +262,7 @@ async function sendHelp(msg) {
     .addField('Supported languages', 'Javascript, Python, PHP, c, c++ and rust.\n' +
       'js, py, php, c, c++/cpp and rs.')
     .addField("Warning!", "Abuse of the system and intentionally breaking it will result in a blacklist")
-    .setFooter("Collaborators: Dodo#1948 | Toast#1042")
+    .setFooter("Collaborators: Dodo#1948 | Toast#1042 | 0xCF80#5359")
     .setColor('#FAA61A')
   msg.channel.send({
     embeds: [embed]
@@ -280,9 +282,9 @@ async function sendScreenshotHTML(message, content) {
   });
   await page.setContent(content);
   let image = await page.screenshot();
-  message.channel.send({
-    files: [image]
-  })
+  const embed = new MessageEmbed()
+    .setTitle("Resulting page")
+  message.channel.send({files: [image]})
   await browser.close();
 };
 
