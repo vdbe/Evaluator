@@ -3,6 +3,9 @@
 
 FROM node:16-alpine
 
+ENV CHROME_BIN="/usr/bin/chromium-browser"\
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD="true"
+
 # Install 'evalutors'
 RUN apk update && \
     apk add --no-cache \
@@ -12,7 +15,7 @@ RUN apk update && \
     python3 \
     rust \
     iptables \
-    ip6tables
+    ip6tables 
 
 
 # Setup userENV USER=docker

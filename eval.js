@@ -11,9 +11,6 @@ const {
 const fs = require('fs')
 const dotenv = require('dotenv')
 const tmp = require('tmp');
-const {
-  brotliDecompressSync
-} = require("zlib");
 dotenv.config()
 
 
@@ -26,7 +23,7 @@ Client.on('ready', () => {
 const commands = {
   "execute": [`${process.env.PREFIX}execute`, `${process.env.PREFIX}eval`, `${process.env.PREFIX}e`],
   "executefull": [`${process.env.PREFIX}executefull`, `${process.env.PREFIX}efull`, `${process.env.PREFIX}ef`],
-  "help": [`${process.env.PREFIX}help`, `${process.env.PREFIX}h`]
+  "help": [`${process.env.PREFIX}help`, `${process.env.PREFIX}h`],
 }
 
 let options = {
@@ -104,10 +101,11 @@ Client.on('messageCreate', async (message) => {
       args[0] = args[0].slice(1)
     }
     let language = args[0].split("\n")[0].replace('\`\`\`', '')
+    let code = args.join(" ").replace(langregex, '').replace(/`{3}/, '')
+    let langobject = langs[language] || shortenedlangs[language]
+
     if (commands.execute.includes(command) || commands.executefull.includes(command)) {
 
-      let langobject = langs[language] || shortenedlangs[language]
-      let code = args.join(" ").replace(langregex, '').replace(/`{3}/, '')
       let tmpfile = tmp.fileSync({
         postfix: langobject.postfix,
         mode: 0777
@@ -164,6 +162,7 @@ Client.on('messageCreate', async (message) => {
           break;
       }
     }
+
   }
 })
 async function sendResult(msg, isSucces, lang, input, output) {
@@ -211,6 +210,8 @@ async function sendUnsupported(msg) {
     embeds: [embed]
   });
 }
+
+
 async function sendHelp(msg) {
   const embed = new MessageEmbed()
     .setTitle("How do I use the bot?")
@@ -226,4 +227,4 @@ async function sendHelp(msg) {
     embeds: [embed]
   });
 }
-Client.login(process.env.TOKEN);
+Client.login(process.env.TESTER);
