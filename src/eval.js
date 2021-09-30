@@ -104,7 +104,7 @@ Client.on('messageCreate', async (message) => {
     let language = args[0].split("\n")[0].replace('\`\`\`', '') // This causes a \n to not work right after command.
     let code = args.join(" ").replace(langregex, '').replace(/`{3}/, '')
     let langobject = langs[language] || shortenedlangs[language]
-    if(!langobject){
+    if(!language){
       return sendUnsupported(message)
     }
     if (commands.execute.includes(command) || commands.executefull.includes(command)) {
@@ -297,4 +297,4 @@ async function sendScreenshotHTML(message, content) {
   await browser.close();
 };
 
-Client.login(process.env.TESTER);
+Client.login(process.env.TOKEN);
