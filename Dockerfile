@@ -15,7 +15,6 @@ RUN apk update && \
     python3 \
     rust \
     iptables \
-    ip6tables \
 # For puppeteer: https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md#running-on-alpine
     chromium \
     nss \
@@ -48,16 +47,19 @@ RUN adduser \
 RUN mkdir -p /root/evaluator
 WORKDIR /root/evaluator
 
-# Copy required files
-COPY ./package.json /root/evaluator/
-COPY ./ /root/evaluator/
-
-# Set permissions for root folder
-RUN chmod -R 400 /root
+# Copy required files for npm install
+COPY ./package.json .
 
 RUN npm install
 
-# Copy config last
-COPY ./.env /root/evaluator/
+# Copy source code
+COPY ./src ./src
 
-ENTRYPOINT ["node", "./src/eval.js"]
+# Copy config last
+COPY ./.env .
+
+# Set permissions for WORKDIR
+RUN chmod -R og= .
+
+ENTRYPOINT ["node"]
+CMD ["./src/eval.js"]
