@@ -122,9 +122,9 @@ Client.on('messageCreate', async (message) => {
           try {
             exec(`${langobject.command} ${tmpfile.name}`, options, async (error, stdout, stderr) => {
               let original = args.join(" ")
-              if (langobject.callback)
-                return langobject.callback(command, message, stdout)
               sendResult(message, true, langobject.name, original, stdout)
+              if (langobject.callback)
+                langobject.callback(command, message, stdout)
               
               tmpfile.removeCallback();
             });
@@ -181,8 +181,9 @@ Client.on('messageCreate', async (message) => {
 })
 
 async function sendResult(msg, isSucces, lang, input, output) {
-  const inputDescription = `**✍️ Input code in ${lang}:**\n${input}\n`
-  let description = // inputDescription + // less spam.
+  // const inputDescription = `**✍️ Input code in ${lang}:**\n${input}\n`
+  const inputDescription = `**✍️ Input code in ${lang}.\n` // less spam.
+  let description =  inputDescription +
     `${isSucces ? '**📝 Output:**' : '**❌ Error**'}
 \`\`\`
 ${output || 'No output from execution'}
