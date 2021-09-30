@@ -104,7 +104,9 @@ Client.on('messageCreate', async (message) => {
     let language = args[0].split("\n")[0].replace('\`\`\`', '') // This causes a \n to not work right after command.
     let code = args.join(" ").replace(langregex, '').replace(/`{3}/, '')
     let langobject = langs[language] || shortenedlangs[language]
-
+    if(!langobject){
+      return sendUnsupported(message)
+    }
     if (commands.execute.includes(command) || commands.executefull.includes(command)) {
 
       let tmpfile = tmp.fileSync({
@@ -122,7 +124,7 @@ Client.on('messageCreate', async (message) => {
           try {
             exec(`${langobject.command} ${tmpfile.name}`, options, async (error, stdout, stderr) => {
               let original = args.join(" ")
-              if (langobject.callback)
+              if (langobject.callback && commands.executefull.includes(command))
                 return langobject.callback(command, message, stdout)
               sendResult(message, true, langobject.name, original, stdout)
               
@@ -259,6 +261,12 @@ async function sendHelp(msg) {
     .setDescription('Use a codeblock with language of your choosing and code within, example:\n' +
       '\\\`\\\`\\\`cpp\nstd::cout << "hello world!";\n\\\`\\\`\\\`\n' +
       '\`\`\`cpp\nstd::cout << "hello world!";\`\`\`')
+    .addField("Commands",
+    `;execute [e]: Executes a code snippet with no need of adding things like a main function\n
+     ;executefull [ef]: Executes an entire file of code, for example you can add defines in C.\n
+     ;brainfuck [bf]: Execute a piece of brainfuck code (up to 1000 blocks)
+    `
+    )
     .addField('Supported languages', 'Javascript, Python, PHP, c, c++ and rust.\n' +
       'js, py, php, c, c++/cpp and rs.')
     .addField("Warning!", "Abuse of the system and intentionally breaking it will result in a blacklist")
@@ -286,4 +294,4 @@ async function sendScreenshotHTML(message, content) {
   await browser.close();
 };
 
-Client.login(process.env.TOKEN);
+Client.login(process.env.TESTER);

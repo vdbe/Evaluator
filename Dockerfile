@@ -48,14 +48,18 @@ RUN adduser \
 RUN mkdir -p /root/evaluator
 WORKDIR /root/evaluator
 
-# Copy required files
-COPY ./package.json /root/evaluator/
-COPY ./ /root/evaluator/
 
 # Set permissions for root folder
 RUN chmod -R 400 /root
 
+#copy package.json
+COPY ./package.json /root/evaluator/
+
 RUN npm install
+
+# Copy required files
+COPY ./ /root/evaluator/
+
 
 # Copy config last
 COPY ./.env /root/evaluator/

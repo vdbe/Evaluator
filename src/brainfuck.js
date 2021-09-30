@@ -24,33 +24,56 @@ module.exports = class BrainFuck {
                     }
                     break;
                 case "+":
-                    if (this.data[this.pointer] == 127) {
-                        throw new Error("ASCII value too high");
-                    } else {
-                        this.data[this.pointer] += 1;
+                    this.data[this.pointer] += 1;
+                    if(this.data[this.pointer] == 128){
+                        this.data[this.pointer] = -128
                     }
                     break;
                 case "-":
-                    if (this.data[this.pointer] == 0) {
-                        throw new Error("ASCII value too low");
-                    } else {
-                        this.data[this.pointer] -= 1;
+                    this.data[this.pointer] -= 1;
+                    if(this.data[this.pointer] == -129){
+                        this.data[this.pointer] = 127
                     }
+                
                     break;
                 case ".":
+                    if (this.data[this.pointer] == 0) {
+                        throw new Error("ASCII value too low");
+                    }
+                    if (this.data[this.pointer] == 127) {
+                        throw new Error("ASCII value too high");
+                    }
                     this.result += String.fromCharCode(this.data[this.pointer]);
                     break;
                 case "[":
+                    this.opened += 1;
                     if (this.data[this.pointer] == 0) {
-                        while (string[i] != "]") {
+                        let countclosed = 0;
+                        let countopened = 1;
+                        while (countclosed != countopened) {
                             i++;
+                            if(string[i] == "["){
+                                countopened += 1;
+                            }
+                            if(string[i] == "]"){
+                                countclosed +=1 ;
+                            }
                         }
                     }
                     break;
                 case "]":
+                    this.closed += 1;
                     if (this.data[this.pointer] != 0) {
-                        while (string[i] != "[") {
+                        let countclosed = 1;
+                        let countopened = 0;
+                        while (countopened != countclosed) {
                             i--;
+                            if(string[i] == "["){
+                                countopened+=1;
+                            }
+                            if(string[i] == "]"){
+                                countclosed +=1 ;
+                            }
                         }
                     }
                     break;
