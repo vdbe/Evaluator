@@ -6,7 +6,8 @@ SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 [ -z "$DOCKERNAME" ]	&& DOCKERNAME="evalbot"
 [ -z "$UIDOWNER" ]	&& UIDOWNER="8877"
 
-docker build -t ${TAGNAME} ${SCRIPTPATH} \
+docker rm -f $DOCKERNAME || true \
+	&& docker build -t ${TAGNAME} ${SCRIPTPATH} \
 	&& docker run -d --cap-add=NET_ADMIN --name=${DOCKERNAME} ${TAGNAME} \
 	&& docker exec ${DOCKERNAME} iptables -A OUTPUT -m owner --uid-owner ${UIDOWNER} -j DROP
 
