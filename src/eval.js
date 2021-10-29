@@ -114,8 +114,11 @@ Client.on('messageCreate', async (message) => {
         mode: 0777
       })
       let input;
-      if (commands.execute.includes(command)) input = langobject.template.replace("{CODE}", code);
-      else input = code
+      if (commands.execute.includes(command))
+        input = langobject.template.replace("{CODE}", code);
+      else
+        input = code
+
       await fs.writeFileSync(tmpfile.name, input)
     
 
@@ -123,45 +126,50 @@ Client.on('messageCreate', async (message) => {
         case "interpreter":
           try {
             exec(`${langobject.command} ${tmpfile.name}`, options, async (error, stdout, stderr) => {
+              tmpfile.removeCallback();
+
               let original = args.join(" ")
               if (langobject.callback && commands.executefull.includes(command))
                 return langobject.callback(command, message, stdout)
+
               sendResult(message, true, langobject.name, original, stdout)
               if (langobject.callback)
                 langobject.callback(command, message, stdout)
               
-              tmpfile.removeCallback();
             });
           } catch (err) {
+            tmpfile.removeCallback();
             console.log(`${err}`)
           }
           break;
         case "compiler":
+          let compiledtmp = tmp.fileSync({
+            mode: 0777,
+            discardDescriptor: true
+          })
+
           try {
 
-            let compiledtmp = tmp.fileSync({
-              mode: 0777,
-              discardDescriptor: true
-            })
             exec(`${langobject.command} ${tmpfile.name} -o ${compiledtmp.name}`, (error, stdout, stderr) => {
+              tmpfile.removeCallback()
               if (stderr) {
                 let original = args.join(" ")
                 sendResult(message, false, langobject.name, original, stderr)
-                tmpfile.removeCallback()
                 compiledtmp.removeCallback()
                 return;
               }
               exec(compiledtmp.name, options, async (error, stdout, stderr) => {
+                compiledtmp.removeCallback()
                 if (error) {
                   console.log(error)
                 }
                 let original = args.join(" ")
                 sendResult(message, true, langobject.name, original, stdout)
-                tmpfile.removeCallback()
-                compiledtmp.removeCallback()
               });
             });
           } catch (err) {
+            tmpfile.removeCallback();
+            compiledtmp.removeCallback()
             console.log(`${err}`)
           }
           break;
