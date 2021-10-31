@@ -23,7 +23,7 @@ const commands = {
 }
 
 let options = {
-  timeout: 100,
+  timeout: 1000,
   stdio: 'inherit',
   shell: true,
   uid: 8877,
@@ -104,7 +104,7 @@ Client.on('messageCreate', async (message) => {
     let language = args[0].split("\n")[0].replace('\`\`\`', '') // This causes a \n to not work right after command.
     let code = args.join(" ").replace(langregex, '').replace(/`{3}/, '')
     let langobject = langs[language] || shortenedlangs[language]
-    if(!language){
+    if(!langobject && !commands.brainfuck.includes(command)){
       return sendUnsupported(message)
     }
     if (commands.execute.includes(command) || commands.executefull.includes(command)) {
