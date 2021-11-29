@@ -1,5 +1,7 @@
+
 module.exports = class BrainFuck {
     constructor() {
+        //init
         this.pointer = 0;
         this.data = new Array(1000).fill(0);
         this.result = "";
