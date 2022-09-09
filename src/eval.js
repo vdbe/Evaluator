@@ -284,7 +284,7 @@ async function sendHelp(msg) {
             { name: "Supported Languages", value: 'Javascript, Python, PHP, c, c++ , rust and brainfuck.\n' },
             { name: "Warning!", value: "Abuse of the system and intentionally breaking it will result in a blacklist" }
         )
-        .setFooter("Collaborators: Dodo#1948 | Toast#1042 | 0xCF80#5359")
+        .setFooter({ text: "Collaborators: Dodo#1948 | Toast#1042 | 0xCF80#5359" })
         .setColor('#FAA61A')
     msg.channel.send({
         embeds: [embed]
