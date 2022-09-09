@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 const Client = new Discord.Client({ intents: ["Guilds", "GuildMessages", "MessageContent"] });
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { exec } = require("child_process")
 const fs = require('fs')
 const dotenv = require('dotenv')
