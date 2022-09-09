@@ -202,7 +202,7 @@ async function sendResult(msg, isSucces, lang, input, output) {
 ${output || 'No output from execution'}
 \`\`\``
 
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
         .setTitle('Evaluation')
         .setDescription(description)
         .setColor(isSucces ? '#3BA55D' : '#ED4245')
@@ -228,7 +228,7 @@ ${output || 'No output from execution'}
 }
 
 async function sendUnsupported(msg) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
         .setTitle('Language not supported or missing')
         .setDescription('Use a codeblock with language of your choosing and code within, example:\n' +
             '\\\`\\\`\\\`cpp\nstd::cout << "hello world!";\n\\\`\\\`\\\`\n' +
@@ -258,7 +258,7 @@ async function sendBrainFuckError(msg, error) {
             description = "There is no ASCII character with a value less than 0!"
             break;
     }
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
         .setTitle(title)
         .setDescription(description)
         .setColor('#FAA61A')
@@ -268,7 +268,7 @@ async function sendBrainFuckError(msg, error) {
 }
 
 async function sendHelp(msg) {
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
         .setTitle("How do I use the bot?")
         .setDescription('Use a codeblock with language of your choosing and code within, example:\n' +
             '\\\`\\\`\\\`cpp\nstd::cout << "hello world!";\n\\\`\\\`\\\`\n' +
