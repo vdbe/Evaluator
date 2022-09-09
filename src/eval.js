@@ -233,8 +233,9 @@ async function sendUnsupported(msg) {
         .setDescription('Use a codeblock with language of your choosing and code within, example:\n' +
             '\\\`\\\`\\\`cpp\nstd::cout << "hello world!";\n\\\`\\\`\\\`\n' +
             '\`\`\`cpp\nstd::cout << "hello world!";\`\`\`')
-        .addField('Supported languages', 'Javascript, Python, c, c++ , rust and brainfuck.\n' +
-            'js, py, c, c++/cpp , rs and bf.')
+        .addFields(
+            { name: "Supported Languages", value: 'Javascript, Python, PHP, c, c++ , rust and brainfuck.\n' }
+        )
         .setColor('#FAA61A')
     msg.channel.send({
         embeds: [embed]
@@ -273,15 +274,16 @@ async function sendHelp(msg) {
         .setDescription('Use a codeblock with language of your choosing and code within, example:\n' +
             '\\\`\\\`\\\`cpp\nstd::cout << "hello world!";\n\\\`\\\`\\\`\n' +
             '\`\`\`cpp\nstd::cout << "hello world!";\`\`\`')
-        .addField("Commands",
-            `;execute [e]: Executes a code snippet with no need of adding things like a main function\n
+        .addFields(
+            {
+                name: "Commands", value: `;execute [e]: Executes a code snippet with no need of adding things like a main function\n
      ;executefull [ef]: Executes an entire file of code, for example you can add defines in C.\n
      ;brainfuck [bf]: Execute a piece of brainfuck code (up to 1000 blocks)
     `
+            },
+            { name: "Supported Languages", value: 'Javascript, Python, PHP, c, c++ , rust and brainfuck.\n' },
+            { name: "Warning!", value: "Abuse of the system and intentionally breaking it will result in a blacklist" }
         )
-        .addField('Supported languages', 'Javascript, Python, PHP, c, c++ , rust and brainfuck.\n' +
-            'js, py, php, c, c++/cpp , rs and bf.')
-        .addField("Warning!", "Abuse of the system and intentionally breaking it will result in a blacklist")
         .setFooter("Collaborators: Dodo#1948 | Toast#1042 | 0xCF80#5359")
         .setColor('#FAA61A')
     msg.channel.send({
